@@ -26,7 +26,7 @@ runs:
             git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
             SIREPO_SRDB_ROOT="${where_to_clone}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
         fi
-        cp -Rv ${SIREPO_SRDB_ROOT} SIREPO_SRDB_ROOT
+        cp -Rv ${SIREPO_SRDB_ROOT} /tmp/SIREPO_SRDB_ROOT
 
     - name: Install Podman
       if: inputs.docker-binary == 'podman'

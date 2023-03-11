@@ -61,7 +61,7 @@ cmd_start="${docker_binary} run ${arg} --init ${remove_container} --name sirepo 
     -e SIREPO_SRDB_ROOT=${SIREPO_SRDB_ROOT} \
     -e SIREPO_COOKIE_IS_SECURE=false \
     -p 8000:8000 \
-    -v SIREPO_SRDB_ROOT:/SIREPO_SRDB_ROOT:ro,z "
+    -v /tmp/SIREPO_SRDB_ROOT:/SIREPO_SRDB_ROOT:ro,z "
 
 cmd_extra=""
 if [ ! -z "${SIREPO_SRDB_HOST}" -a ! -z "${SIREPO_SRDB_GUEST}" ]; then
