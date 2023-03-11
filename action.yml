@@ -9,20 +9,25 @@ inputs:
     description: 'Docker binary (docker or podman)'
     required: false
     default: 'docker'
-# outputs:
-#   name:
-#     description: "Random number"
-#     value: ${{ steps.random-number-generator.outputs.random-number }}
 runs:
   using: "composite"
   steps:
     - name: Clone Sirepo-Bluesky repo and get example files
       shell: bash -l {0}
       run: |
+        # For reference: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html.
         set -vxeuo pipefail
         git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky /tmp/sirepo-bluesky
         cp -Rv /tmp/sirepo-bluesky/sirepo_bluesky/tests/SIREPO_SRDB_ROOT SIREPO_SRDB_ROOT
         rm -f -r -v /tmp/sirepo-bluesky/
+
+    - name: Install Podman
+      if: inputs.docker-binary == 'podman'
+      shell: bash -l {0}
+      run: |
+        set -vxeuo pipefail
+        sudo apt-get -y update
+        sudo apt-get -y install podman
 
     - name: Set up env vars
       shell: bash -l {0}
