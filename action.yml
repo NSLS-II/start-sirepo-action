@@ -1,0 +1,58 @@
+name: 'start-sirepo'
+description: 'Start Sirepo with pre-defined simulations'
+inputs:
+  image-tag:
+    description: 'Sirepo Docker image tag to use'
+    required: false
+    default: '20220806.215448'
+  docker-binary:
+    description: 'Docker binary (docker or podman)'
+    required: false
+    default: 'docker'
+# outputs:
+#   name:
+#     description: "Random number"
+#     value: ${{ steps.random-number-generator.outputs.random-number }}
+runs:
+  using: "composite"
+  steps:
+    - name: Clone Sirepo-Bluesky repo and get example files
+      shell: bash -l {0}
+      run: |
+        set -vxeuo pipefail
+        git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky /tmp/sirepo-bluesky
+        cp -Rv /tmp/sirepo-bluesky/sirepo_bluesky/tests/SIREPO_SRDB_ROOT SIREPO_SRDB_ROOT
+        rm -f -r -v /tmp/sirepo-bluesky/
+
+    - name: Set up env vars
+      shell: bash -l {0}
+      run: |
+        set -vxeuo pipefail
+        export DOCKER_IMAGE_TAG=${{ inputs.image-tag }}
+        echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
+
+        export DOCKER_BINARY=${{ inputs.docker-binary }}
+        echo "DOCKER_BINARY=${DOCKER_BINARY}" >> $GITHUB_ENV
+
+    - name: Start Sirepo Docker container
+      shell: bash -l {0}
+      run: |
+        set -vxeuo pipefail
+        . scripts/start_sirepo.sh -d
+        export SIREPO_DOCKER_CONTAINER_ID
+        echo "SIREPO_DOCKER_CONTAINER_ID=${SIREPO_DOCKER_CONTAINER_ID}" >> $GITHUB_ENV
+
+    - name: Check Sirepo state
+      shell: bash -l {0}
+      run: |
+        set -vxeuo pipefail
+        # Sleeping to allow sirepo time to start up
+        sleep 10
+        ${DOCKER_BINARY} images
+        ${DOCKER_BINARY} ps -a
+        container=$(${DOCKER_BINARY} ps -q -f id=${SIREPO_DOCKER_CONTAINER_ID})
+        ${DOCKER_BINARY} logs ${SIREPO_DOCKER_CONTAINER_ID}
+        if [ -z "${container}" ]; then
+            echo "Container ID ${SIREPO_DOCKER_CONTAINER_ID} is not running. Exiting."
+            exit 1
+        fi
