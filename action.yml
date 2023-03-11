@@ -50,7 +50,7 @@ runs:
       shell: bash -l {0}
       run: |
         set -vxeuo pipefail
-        . scripts/start_sirepo.sh -d
+        . start_sirepo.sh -d
         export SIREPO_DOCKER_CONTAINER_ID
         echo "SIREPO_DOCKER_CONTAINER_ID=${SIREPO_DOCKER_CONTAINER_ID}" >> $GITHUB_ENV
 
