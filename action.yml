@@ -12,14 +12,21 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Clone Sirepo-Bluesky repo and get example files
+    - name: Optionally clone Sirepo-Bluesky repo and get example files
       shell: bash -l {0}
       run: |
         # For reference: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html.
         set -vxeuo pipefail
-        git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky /tmp/sirepo-bluesky
-        cp -Rv /tmp/sirepo-bluesky/sirepo_bluesky/tests/SIREPO_SRDB_ROOT SIREPO_SRDB_ROOT
-        rm -f -r -v /tmp/sirepo-bluesky/
+        if [ -d "${GITHUB_WORKSPACE}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT" ]; then
+            # In Sirepo-Bluesky repo.
+            SIREPO_SRDB_ROOT="${GITHUB_WORKSPACE}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
+        else
+            # In other repos.
+            where_to_clone="/tmp/sirepo-bluesky"
+            git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
+            SIREPO_SRDB_ROOT="${where_to_clone}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
+        fi
+        cp -Rv ${SIREPO_SRDB_ROOT} SIREPO_SRDB_ROOT
 
     - name: Install Podman
       if: inputs.docker-binary == 'podman'
