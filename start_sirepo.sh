@@ -40,21 +40,26 @@ else
     mkdir -p "${today}"
 fi
 
-# docker_image="radiasoft/sirepo:beta"
-docker_image="radiasoft/sirepo:${DOCKER_IMAGE_TAG:-'20220806.215448'}"
+docker_image_tag=${DOCKER_IMAGE_TAG:-'beta'}  # '20220806.215448' for the older tag
+docker_image="radiasoft/sirepo:${docker_image_tag}"
 docker_binary=${DOCKER_BINARY:-"docker"}
 
 ${docker_binary} pull ${docker_image}
 
 ${docker_binary} images
 
-in_docker_cmd="mkdir -v -p ${SIREPO_SRDB_ROOT} && \
-    if [ ! -f "${SIREPO_SRDB_ROOT}/auth.db" ]; then \
-        cp -Rv /SIREPO_SRDB_ROOT/* ${SIREPO_SRDB_ROOT}/; \
-    else \
-        echo 'The directory exists. Nothing to do'; \
-    fi && \
-    sirepo service http"
+in_docker_cmd=$(cat <<EOF
+mkdir -v -p ${SIREPO_SRDB_ROOT} && \
+if [ ! -f "${SIREPO_SRDB_ROOT}/auth.db" ]; then \
+    cp -Rv /SIREPO_SRDB_ROOT/* ${SIREPO_SRDB_ROOT}/; \
+else \
+    echo 'The directory exists. Nothing to do'; \
+fi && \
+sed -i -E \"s;export SIREPO_SRDB_ROOT=\"\(.*\)\";export SIREPO_SRDB_ROOT=\"$SIREPO_SRDB_ROOT\";g\" ~/.radia-run/start && \
+~/.radia-run/start
+EOF
+)
+
 cmd_start="${docker_binary} run ${arg} --init ${remove_container} --name sirepo \
     -e SIREPO_AUTH_METHODS=bluesky:guest \
     -e SIREPO_AUTH_BLUESKY_SECRET=bluesky \
