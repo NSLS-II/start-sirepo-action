@@ -9,6 +9,15 @@ inputs:
     description: 'Docker binary (docker or podman)'
     required: false
     default: 'docker'
+  sirepo-bluesky-repo:
+    description: 'sirepo-bluesky repo with GH org name'
+    required: false
+    default: 'NSLS-II/sirepo-bluesky'
+  sirepo-bluesky-branch:
+    description: 'branch to clone from the sirepo-bluesky repo'
+    required: false
+    default: 'main'
+
 runs:
   using: "composite"
   steps:
@@ -23,7 +32,8 @@ runs:
         else
             # In other repos.
             where_to_clone="/tmp/sirepo-bluesky"
-            git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
+            # git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
+            git clone --depth=1 -b ${{ inputs.sirepo-bluesky-branch }} https://github.com/${{ inputs.sirepo-bluesky-repo }}.git ${where_to_clone}
             SIREPO_BLUESKY_REPO_ROOT="${where_to_clone}"
         fi
         echo "SIREPO_BLUESKY_REPO_ROOT=${SIREPO_BLUESKY_REPO_ROOT}" >> $GITHUB_ENV
