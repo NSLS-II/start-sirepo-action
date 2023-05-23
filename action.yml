@@ -33,7 +33,7 @@ runs:
             # In other repos.
             where_to_clone="/tmp/sirepo-bluesky"
             # git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
-            git clone --depth=1 -b ${{ inputs.sirepo-bluesky-branch }} https://github.com/${{ inputs.sirepo-bluesky-repo }}.git ${where_to_clone}
+            git clone --depth=1 --single-branch -b ${{ inputs.sirepo-bluesky-branch }} https://github.com/${{ inputs.sirepo-bluesky-repo }}.git ${where_to_clone}
             SIREPO_BLUESKY_REPO_ROOT="${where_to_clone}"
         fi
         echo "SIREPO_BLUESKY_REPO_ROOT=${SIREPO_BLUESKY_REPO_ROOT}" >> $GITHUB_ENV
