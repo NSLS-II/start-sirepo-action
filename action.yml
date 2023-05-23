@@ -14,9 +14,13 @@ inputs:
     required: false
     default: 'NSLS-II/sirepo-bluesky'
   sirepo-bluesky-branch:
-    description: 'branch to clone from the sirepo-bluesky repo'
+    description: 'Branch to clone from the sirepo-bluesky repo'
     required: false
     default: 'main'
+  sirepo-srdb-target-dir:
+    description: 'The directory where to copy SIREPO_SRDB_ROOT dir to'
+    required: false
+    default: '/tmp/SIREPO_SRDB_ROOT'
 
 runs:
   using: "composite"
@@ -37,8 +41,12 @@ runs:
             SIREPO_BLUESKY_REPO_ROOT="${where_to_clone}"
         fi
         echo "SIREPO_BLUESKY_REPO_ROOT=${SIREPO_BLUESKY_REPO_ROOT}" >> $GITHUB_ENV
+
         SIREPO_SRDB_ROOT="${SIREPO_BLUESKY_REPO_ROOT}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
-        cp -Rv ${SIREPO_SRDB_ROOT} /tmp/SIREPO_SRDB_ROOT
+        SIREPO_SRDB_HOST_RO=${{ inputs.sirepo-srdb-target-dir }}
+        echo "SIREPO_SRDB_HOST_RO=${SIREPO_SRDB_HOST_RO}" >> $GITHUB_ENV
+
+        cp -Rv ${SIREPO_SRDB_ROOT} ${SIREPO_SRDB_HOST_RO}
 
     - name: Install Podman
       if: inputs.docker-binary == 'podman'
