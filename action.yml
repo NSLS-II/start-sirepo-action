@@ -4,11 +4,24 @@ inputs:
   image-tag:
     description: 'Sirepo Docker image tag to use'
     required: false
-    default: '20220806.215448'
+    default: 'beta'
   docker-binary:
     description: 'Docker binary (docker or podman)'
     required: false
     default: 'docker'
+  sirepo-bluesky-repo:
+    description: 'sirepo-bluesky repo with GH org name'
+    required: false
+    default: 'NSLS-II/sirepo-bluesky'
+  sirepo-bluesky-branch:
+    description: 'Branch to clone from the sirepo-bluesky repo'
+    required: false
+    default: 'main'
+  sirepo-srdb-target-dir:
+    description: 'The directory where to copy SIREPO_SRDB_ROOT dir to'
+    required: false
+    default: '/tmp/SIREPO_SRDB_ROOT'
+
 runs:
   using: "composite"
   steps:
@@ -19,14 +32,21 @@ runs:
         set -vxeuo pipefail
         if [ -d "${GITHUB_WORKSPACE}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT" ]; then
             # In Sirepo-Bluesky repo.
-            SIREPO_SRDB_ROOT="${GITHUB_WORKSPACE}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
+            SIREPO_BLUESKY_REPO_ROOT="${GITHUB_WORKSPACE}"
         else
             # In other repos.
             where_to_clone="/tmp/sirepo-bluesky"
-            git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
-            SIREPO_SRDB_ROOT="${where_to_clone}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
+            # git clone --depth=1 https://github.com/NSLS-II/sirepo-bluesky.git ${where_to_clone}
+            git clone --depth=1 --single-branch -b ${{ inputs.sirepo-bluesky-branch }} https://github.com/${{ inputs.sirepo-bluesky-repo }}.git ${where_to_clone}
+            SIREPO_BLUESKY_REPO_ROOT="${where_to_clone}"
         fi
-        cp -Rv ${SIREPO_SRDB_ROOT} /tmp/SIREPO_SRDB_ROOT
+        echo "SIREPO_BLUESKY_REPO_ROOT=${SIREPO_BLUESKY_REPO_ROOT}" >> $GITHUB_ENV
+
+        SIREPO_SRDB_ROOT="${SIREPO_BLUESKY_REPO_ROOT}/sirepo_bluesky/tests/SIREPO_SRDB_ROOT"
+        SIREPO_SRDB_HOST_RO=${{ inputs.sirepo-srdb-target-dir }}
+        echo "SIREPO_SRDB_HOST_RO=${SIREPO_SRDB_HOST_RO}" >> $GITHUB_ENV
+
+        cp -Rv ${SIREPO_SRDB_ROOT} ${SIREPO_SRDB_HOST_RO}
 
     - name: Install Podman
       if: inputs.docker-binary == 'podman'
@@ -50,7 +70,7 @@ runs:
       shell: bash -l {0}
       run: |
         set -vxeuo pipefail
-        . ${GITHUB_ACTION_PATH}/start_sirepo.sh -d
+        . ${SIREPO_BLUESKY_REPO_ROOT}/scripts/start_sirepo.sh -d
         export SIREPO_DOCKER_CONTAINER_ID
         echo "SIREPO_DOCKER_CONTAINER_ID=${SIREPO_DOCKER_CONTAINER_ID}" >> $GITHUB_ENV
 
