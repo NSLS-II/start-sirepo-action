@@ -21,6 +21,10 @@ inputs:
     description: 'The directory where to copy SIREPO_SRDB_ROOT dir to'
     required: false
     default: '/tmp/SIREPO_SRDB_ROOT'
+  sirepo-port:
+    description: 'The port Sirepo will use'
+    required: false
+    default: 8000
 
 runs:
   using: "composite"
@@ -63,8 +67,8 @@ runs:
         export DOCKER_IMAGE_TAG=${{ inputs.image-tag }}
         echo "DOCKER_IMAGE_TAG=${DOCKER_IMAGE_TAG}" >> $GITHUB_ENV
 
-        export DOCKER_BINARY=${{ inputs.docker-binary }}
-        echo "DOCKER_BINARY=${DOCKER_BINARY}" >> $GITHUB_ENV
+        export SIREPO_PORT=${{ inputs.sirepo-port }}
+        echo "SIREPO_PORT=${SIREPO_PORT}" >> $GITHUB_ENV
 
     - name: Start Sirepo Docker container
       shell: bash -l {0}
